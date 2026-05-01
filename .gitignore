@@ -11,3 +11,5 @@ __pycache__/
 .mypy_cache/
 .idea/
 .vscode/
+**/pnpm-lock.yaml
+**/package-lock.json
