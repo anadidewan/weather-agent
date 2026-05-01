@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectScaffold>
+  <status>completed</status>
+  <services>
+    <service name="mcp-wrapper" stack="node-ts-express" state="scaffolded">
+      <port>8080</port>
+      <healthEndpoint>/health</healthEndpoint>
+    </service>
+    <service name="backend-agent" stack="python-fastapi" state="scaffolded">
+      <port>8000</port>
+      <healthEndpoint>/health</healthEndpoint>
+    </service>
+    <service name="frontend" stack="react-ts-vite" state="scaffolded">
+      <port>3000</port>
+      <healthEndpoint>/</healthEndpoint>
+    </service>
+  </services>
+  <notes>
+    <note>No business logic included.</note>
+    <note>Each service has independent boot files and .env.example.</note>
+  </notes>
+</projectScaffold>
