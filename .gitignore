@@ -13,3 +13,4 @@ __pycache__/
 .vscode/
 **/pnpm-lock.yaml
 **/package-lock.json
+.pnpm-store/
