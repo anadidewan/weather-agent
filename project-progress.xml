@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectProgress>
   <status>in_progress</status>
-  <lastUpdatedPrompt>Log tool calls in browser console from frontend api/chat.ts.</lastUpdatedPrompt>
+  <lastUpdatedPrompt>Add local Docker setup: Dockerfiles, compose, root .env.example, README, dockerignore.</lastUpdatedPrompt>
   <services>
     <service name="mcp-wrapper" stack="node-ts-express" state="implemented">
       <port>8080</port>
@@ -40,6 +40,7 @@
     </service>
   </services>
   <notes>
+    <note>Docker: root docker-compose.yml builds three images; frontend build-arg VITE_AGENT_BACKEND_URL defaults to http://localhost:8000; backend-agent uses MCP_WRAPPER_URL=http://mcp-wrapper:8080 on the compose network.</note>
     <note>Backend validation fix is present in code but requires the running uvicorn process to be restarted if an old process is still serving requests.</note>
     <note>Background frontend install/build was stopped on request; rerun pnpm install/build locally when needed.</note>
     <note>Use this file as the running tracker for subsequent prompts in this chat.</note>

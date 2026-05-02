@@ -1,0 +1,49 @@
+services:
+  mcp-wrapper:
+    build:
+      context: ./mcp-wrapper
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      PORT: "8080"
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
+    networks:
+      - app-network
+
+  backend-agent:
+    build:
+      context: ./backend-agent
+      dockerfile: Dockerfile
+    depends_on:
+      - mcp-wrapper
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      PORT: "8000"
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      MCP_WRAPPER_URL: http://mcp-wrapper:8080
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_AGENT_BACKEND_URL: ${VITE_AGENT_BACKEND_URL:-http://localhost:8000}
+    depends_on:
+      - backend-agent
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
