@@ -100,7 +100,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
     logger.info("/chat user_message_preview=%r", preview)
 
     try:
-        reply_text = await asyncio.wait_for(
+        reply_text, tool_names = await asyncio.wait_for(
             run_chat(
                 agent,
                 user_message=request.message,
@@ -154,5 +154,6 @@ async def chat(request: ChatRequest) -> ChatResponse:
             detail="Unexpected error while processing chat.",
         ) from exc
 
-    logger.info("/chat success reply_preview=%r", _truncate_for_log(reply_text))
-    return ChatResponse(reply=reply_text)
+    logger.info("/chat success reply_preview=%r tools=%s", _truncate_for_log(reply_text), tool_names)
+    tool_calls = [{"name": name} for name in tool_names]
+    return ChatResponse(reply=reply_text, toolCalls=tool_calls)

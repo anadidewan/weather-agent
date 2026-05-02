@@ -1,8 +1,9 @@
+@import "tailwindcss";
+
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: light;
 }
 
 body {
-  margin: 0;
-  padding: 2rem;
+  @apply m-0 min-h-screen bg-zinc-50 text-zinc-900 antialiased;
 }

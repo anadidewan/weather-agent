@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 from langchain.agents import create_agent
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.tools import build_weather_tools
@@ -21,8 +21,7 @@ SYSTEM_PROMPT = """You are a concise weather assistant.
 - When a tool returns JSON, summarize clearly for the user (imperial units where applicable).
 - If a tool message starts with "Error:", follow that guidance in your reply to the user."""
 
-DEFAULT_MODEL = "gemini-2.5-flash"
-
+DEFAULT_MODEL = "gemini-2.5-flash-lite"
 
 def _resolve_gemini_api_key() -> str:
     return (
@@ -46,7 +45,9 @@ def create_weather_agent():
     wrapper_url = _resolve_wrapper_url()
     if not wrapper_url:
         raise RuntimeError("MCP_WRAPPER_URL is not set; refusing to start.")
-
+    logger.info("************************************************************")
+    logger.info("GEMINI_MODEL: %s", os.getenv("GEMINI_MODEL"))    
+    logger.info("************************************************************")
     model_name = os.getenv("GEMINI_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
     model = ChatGoogleGenerativeAI(
         model=model_name,
@@ -95,11 +96,54 @@ def _final_text_from_result(result: dict[str, Any]) -> str:
     return "(no reply)"
 
 
-async def run_chat(agent: Any, *, user_message: str, history: list[Any] | None) -> str:
+def _tool_call_entry_name(entry: Any) -> str | None:
+    if isinstance(entry, dict):
+        raw = entry.get("name")
+        return raw.strip() if isinstance(raw, str) and raw.strip() else None
+    raw = getattr(entry, "name", None)
+    return raw.strip() if isinstance(raw, str) and raw.strip() else None
+
+
+def _tool_names_from_result(result: dict[str, Any]) -> list[str]:
+    """Collect tool names from AIMessage.tool_calls (LangGraph agent standard).
+
+    ToolMessage often does not carry a separate ``name`` field; the model requests
+    tools via AIMessage.tool_calls which includes the tool name.
+    """
+    names: list[str] = []
+    messages = result.get("messages") or []
+    for msg in messages:
+        if isinstance(msg, AIMessage) and getattr(msg, "tool_calls", None):
+            for tc in msg.tool_calls or []:
+                n = _tool_call_entry_name(tc)
+                if n:
+                    names.append(n)
+
+    # Fallback: some stacks still attach name on ToolMessage.
+    for msg in messages:
+        if isinstance(msg, ToolMessage):
+            n = getattr(msg, "name", None)
+            if isinstance(n, str) and n.strip():
+                names.append(n.strip())
+
+    # Preserve order while de-duplicating.
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for name in names:
+        if name in seen:
+            continue
+        seen.add(name)
+        deduped.append(name)
+    return deduped
+
+
+async def run_chat(
+    agent: Any, *, user_message: str, history: list[Any] | None
+) -> tuple[str, list[str]]:
     msgs: list[BaseMessage] = []
     if history:
         msgs.extend(_history_to_messages(history))
     msgs.append(HumanMessage(content=user_message.strip()))
 
     result = await agent.ainvoke({"messages": msgs})
-    return _final_text_from_result(result)
+    return _final_text_from_result(result), _tool_names_from_result(result)

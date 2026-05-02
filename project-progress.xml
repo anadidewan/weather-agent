@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectProgress>
   <status>in_progress</status>
-  <lastUpdatedPrompt>Verify the tracker contains the current project progress and make it up to date.</lastUpdatedPrompt>
+  <lastUpdatedPrompt>Log tool calls in browser console from frontend api/chat.ts.</lastUpdatedPrompt>
   <services>
     <service name="mcp-wrapper" stack="node-ts-express" state="implemented">
       <port>8080</port>
@@ -20,22 +20,28 @@
         <detail>FastAPI service is scaffolded with lifespan startup checks, logging, dotenv, and CORS.</detail>
         <detail>LangChain Gemini agent is wired with three wrapper-backed tools: current weather, forecast, and air quality.</detail>
         <detail>POST /chat accepts message and optional history, logs a truncated user message preview, and handles 400, 502, and 500 cases.</detail>
+        <detail>Chat responses include toolCalls derived from AIMessage.tool_calls so tool names match what the model actually invoked.</detail>
         <detail>Validation error handling was updated to encode request errors safely so bad chat payloads return 400 instead of 500 after server restart.</detail>
         <detail>Startup fails fast if GEMINI_API_KEY or MCP_WRAPPER_URL is missing.</detail>
       </details>
     </service>
-    <service name="frontend" stack="react-ts-vite" state="scaffolded">
+    <service name="frontend" stack="react-ts-vite" state="implemented">
       <port>3000</port>
       <healthEndpoint>/</healthEndpoint>
       <details>
-        <detail>Base Vite React TypeScript scaffold created with a placeholder App component.</detail>
-        <detail>No weather UI or backend integration has been implemented yet.</detail>
+        <detail>Single-page chat interface implemented with modular components: MessageList, MessageInput, and Message.</detail>
+        <detail>User messages render right-aligned and agent messages left-aligned with distinct bubble styling.</detail>
+        <detail>POST /chat integration added through src/api/chat.ts using VITE_AGENT_BACKEND_URL from env.</detail>
+        <detail>Thinking indicator, graceful failure reply, mobile-friendly layout, and Cmd/Ctrl+Enter send shortcut implemented.</detail>
+        <detail>Tailwind styling integrated for clean, modern UI.</detail>
+        <detail>Frontend fails loudly at startup if VITE_AGENT_BACKEND_URL is missing.</detail>
+        <detail>Assistant bubbles show a styled Tools used section when the API returns toolCalls.</detail>
       </details>
     </service>
   </services>
   <notes>
-    <note>Frontend remains scaffold-only.</note>
     <note>Backend validation fix is present in code but requires the running uvicorn process to be restarted if an old process is still serving requests.</note>
+    <note>Background frontend install/build was stopped on request; rerun pnpm install/build locally when needed.</note>
     <note>Use this file as the running tracker for subsequent prompts in this chat.</note>
   </notes>
 </projectProgress>

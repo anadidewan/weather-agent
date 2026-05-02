@@ -31,3 +31,4 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     reply: str
+    toolCalls: list[dict[str, str]] | None = None
